@@ -2,11 +2,13 @@ package main
 
 import (
 	"errors"
-	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"regexp"
+	"text/template"
+
+	blackfriday "v/gopkg.in/russross/blackfriday.v2@v1.0.0-gopkgin-v2.0.0"
 )
 
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
@@ -40,7 +42,7 @@ func loadPage(title string) (*Page, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Page{Title: title, Body: body}, nil
+	return &Page{Title: title, Body: blackfriday.Run(body)}, nil
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
