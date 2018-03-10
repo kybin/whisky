@@ -11,7 +11,7 @@ import (
 
 	"github.com/boltdb/bolt"
 
-	blackfriday "v/gopkg.in/russross/blackfriday.v2@v1.0.0-gopkgin-v2.0.0"
+	blackfriday "gopkg.in/russross/blackfriday.v2"
 )
 
 var db *bolt.DB
