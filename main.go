@@ -59,11 +59,11 @@ func loadPage(title string) (*Page, error) {
 
 func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p, err := loadPage(title)
-	p.Body = blackfriday.Run(p.Body)
 	if err != nil {
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
 		return
 	}
+	p.Body = blackfriday.Run(p.Body)
 	renderTemplate(w, "view", p)
 }
 
