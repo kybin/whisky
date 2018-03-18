@@ -204,7 +204,7 @@ func main() {
 	}
 	defer db.Close()
 
-	db.Update(func(tx *bolt.Tx) error {
+	err = db.Update(func(tx *bolt.Tx) error {
 		for _, buc := range []string{"history"} {
 			_, err := tx.CreateBucketIfNotExists([]byte(buc))
 			if err != nil {
@@ -213,6 +213,9 @@ func main() {
 		}
 		return nil
 	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	http.HandleFunc("/", rootHandler)
 	http.HandleFunc("/view/", makeHandler(viewHandler))
