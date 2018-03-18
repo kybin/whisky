@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
 	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"regexp"
+	"strconv"
 	"text/template"
 	"time"
 
@@ -17,20 +20,39 @@ import (
 
 var db *bolt.DB
 
-var validPath = regexp.MustCompile(`^/(edit|save|view)/(.*)$`)
+var validPath = regexp.MustCompile(`^/(edit|save|view|history)/(.*)$`)
 
-var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
+var templates = template.Must(template.ParseFiles("edit.html", "view.html", "history.html"))
 
 type Page struct {
 	Title string
 	Body  []byte
 }
 
+type History struct {
+	Title string
+	Revs  []Revision
+}
+
+type Revision struct {
+	Num     int
+	Created time.Time
+	Author  string
+}
+
 func (p *Page) save() error {
 	return db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("body"))
-		err := b.Put([]byte(p.Title), p.Body)
-		return err
+		b, err := tx.Bucket([]byte("history")).CreateBucketIfNotExists([]byte(p.Title))
+		if err != nil {
+			return fmt.Errorf("could not create bucket: %s", err)
+		}
+		id, _ := b.NextSequence()
+		idb := make([]byte, 8)
+		binary.BigEndian.PutUint64(idb, id)
+		if err := b.Put(idb, p.Body); err != nil {
+			return err
+		}
+		return nil
 	})
 }
 
@@ -47,13 +69,20 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 
 func loadPage(title string) (*Page, error) {
 	var body []byte
-	db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("body"))
-		body = b.Get([]byte(title))
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("history")).Bucket([]byte(title))
+		if b == nil {
+			return errors.New("page not exists")
+		}
+		c := b.Cursor()
+		_, body = c.Last()
+		if body == nil {
+			return errors.New("page not exists")
+		}
 		return nil
 	})
-	if body == nil {
-		return nil, errors.New("page not exists")
+	if err != nil {
+		return nil, err
 	}
 	return &Page{Title: title, Body: body}, nil
 }
@@ -86,6 +115,58 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	http.Redirect(w, r, "/view/"+title, http.StatusFound)
 }
 
+func historyHandler(w http.ResponseWriter, r *http.Request, title string) {
+	froms := r.URL.Query().Get("from")
+	from, err := strconv.Atoi(froms)
+	if err != nil {
+		from = -1
+	}
+	h, err := loadHistory(title, from, 20)
+	if err != nil {
+		h = &History{Title: title}
+	}
+	renderTemplate(w, "history", h)
+}
+
+func loadHistory(title string, from, n int) (*History, error) {
+	h := &History{Title: title}
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("history")).Bucket([]byte(title))
+		if b == nil {
+			return errors.New("page not exists")
+		}
+		c := b.Cursor()
+
+		var k []byte
+		if from == -1 {
+			k, _ = c.Last()
+			if k == nil {
+				return errors.New("page not exists")
+			}
+		} else {
+			idb := make([]byte, 8)
+			binary.BigEndian.PutUint64(idb, uint64(from))
+			k, _ = c.Seek(idb)
+			if bytes.Compare(k, idb) != 0 {
+				return errors.New("page not exists")
+			}
+		}
+		i := 0
+		for ; k != nil; k, _ = c.Prev() {
+			if i == n {
+				break
+			}
+			h.Revs = append(h.Revs, Revision{Num: int(binary.BigEndian.Uint64(k))})
+			i++
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return h, nil
+}
+
 var homePage string
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
@@ -96,7 +177,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
 }
 
-func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
+func renderTemplate(w http.ResponseWriter, tmpl string, p interface{}) {
 	err := templates.ExecuteTemplate(w, tmpl+".html", p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -124,9 +205,11 @@ func main() {
 	defer db.Close()
 
 	db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte("body"))
-		if err != nil {
-			return fmt.Errorf("create buckets: %s", err)
+		for _, buc := range []string{"history"} {
+			_, err := tx.CreateBucketIfNotExists([]byte(buc))
+			if err != nil {
+				return fmt.Errorf("create buckets: %s", err)
+			}
 		}
 		return nil
 	})
@@ -135,6 +218,7 @@ func main() {
 	http.HandleFunc("/view/", makeHandler(viewHandler))
 	http.HandleFunc("/edit/", makeHandler(editHandler))
 	http.HandleFunc("/save/", makeHandler(saveHandler))
+	http.HandleFunc("/history/", makeHandler(historyHandler))
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

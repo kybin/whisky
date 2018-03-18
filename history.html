@@ -1,0 +1,8 @@
+<h1>{{.Title}}</h1>
+
+<p>[<a href="/view/{{.Title}}">view</a>]</p>
+
+{{range .Revs}}
+	<p>Rev: {{.Num}}, Created: {{.Created}}, Author: {{.Author}}</p>
+{{end}}
+
