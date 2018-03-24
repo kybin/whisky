@@ -6,13 +6,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
-	"text/template"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -29,6 +29,7 @@ var templates = template.Must(template.ParseFiles("edit.html", "view.html", "his
 type Page struct {
 	Title string
 	Body  []byte
+	HTML  template.HTML
 }
 
 type History struct {
@@ -95,7 +96,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
 		return
 	}
-	p.Body = blackfriday.Run(p.Body)
+	p.HTML = template.HTML(blackfriday.Run(p.Body))
 	renderTemplate(w, "view", p)
 }
 
