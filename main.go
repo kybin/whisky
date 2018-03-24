@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"text/template"
@@ -194,8 +195,25 @@ func getTitle(w http.ResponseWriter, r *http.Request) (string, error) {
 }
 
 func main() {
+	var (
+		addr string
+		key  string
+		cert string
+	)
+
 	flag.StringVar(&homePage, "home", "Home", "homepage of the wiki")
+	flag.StringVar(&addr, "addr", ":8080", "binding address")
+	flag.StringVar(&key, "key", "", "https key file")
+	flag.StringVar(&cert, "cert", "", "https cert file")
 	flag.Parse()
+
+	if key != "" && cert == "" {
+		fmt.Fprint(os.Stderr, "key flag should be used with cert flag")
+		os.Exit(1)
+	} else if cert != "" && key == "" {
+		fmt.Fprintf(os.Stderr, "cert flag should be used with key flag")
+		os.Exit(1)
+	}
 
 	var err error
 	db, err = bolt.Open("whisky.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
@@ -223,5 +241,9 @@ func main() {
 	http.HandleFunc("/save/", makeHandler(saveHandler))
 	http.HandleFunc("/history/", makeHandler(historyHandler))
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	if cert != "" && key != "" {
+		log.Fatal(http.ListenAndServeTLS(addr, cert, key, nil))
+	} else {
+		log.Fatal(http.ListenAndServe(addr, nil))
+	}
 }
