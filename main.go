@@ -11,6 +11,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"text/template"
 	"time"
 
@@ -178,6 +179,14 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
 }
 
+func redirectToHttps(w http.ResponseWriter, r *http.Request) {
+	to := "https://" + strings.Split(r.Host, ":")[0] + r.URL.Path
+	if r.URL.RawQuery != "" {
+		to += "?" + r.URL.RawQuery
+	}
+	http.Redirect(w, r, to, http.StatusTemporaryRedirect)
+}
+
 func renderTemplate(w http.ResponseWriter, tmpl string, p interface{}) {
 	err := templates.ExecuteTemplate(w, tmpl+".html", p)
 	if err != nil {
@@ -196,22 +205,21 @@ func getTitle(w http.ResponseWriter, r *http.Request) (string, error) {
 
 func main() {
 	var (
-		addr string
-		key  string
-		cert string
+		addr  string
+		https bool
+		key   string
+		cert  string
 	)
 
 	flag.StringVar(&homePage, "home", "Home", "homepage of the wiki")
 	flag.StringVar(&addr, "addr", ":8080", "binding address")
-	flag.StringVar(&key, "key", "", "https key file")
+	flag.BoolVar(&https, "https", false, "turn on https at 443")
 	flag.StringVar(&cert, "cert", "", "https cert file")
+	flag.StringVar(&key, "key", "", "https key file")
 	flag.Parse()
 
-	if key != "" && cert == "" {
-		fmt.Fprint(os.Stderr, "key flag should be used with cert flag")
-		os.Exit(1)
-	} else if cert != "" && key == "" {
-		fmt.Fprintf(os.Stderr, "cert flag should be used with key flag")
+	if https && cert == "" || key == "" {
+		fmt.Fprintln(os.Stderr, "https flag needs both cert and key flags")
 		os.Exit(1)
 	}
 
@@ -235,15 +243,20 @@ func main() {
 		log.Fatal(err)
 	}
 
-	http.HandleFunc("/", rootHandler)
-	http.HandleFunc("/view/", makeHandler(viewHandler))
-	http.HandleFunc("/edit/", makeHandler(editHandler))
-	http.HandleFunc("/save/", makeHandler(saveHandler))
-	http.HandleFunc("/history/", makeHandler(historyHandler))
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", rootHandler)
+	mux.HandleFunc("/view/", makeHandler(viewHandler))
+	mux.HandleFunc("/edit/", makeHandler(editHandler))
+	mux.HandleFunc("/save/", makeHandler(saveHandler))
+	mux.HandleFunc("/history/", makeHandler(historyHandler))
 
-	if cert != "" && key != "" {
-		log.Fatal(http.ListenAndServeTLS(addr, cert, key, nil))
+	if https {
+		go func() {
+			log.Fatal(http.ListenAndServe(addr, http.HandlerFunc(redirectToHttps)))
+		}()
+		httpsAddr := strings.Split(addr, ":")[0] + ":443"
+		log.Fatal(http.ListenAndServeTLS(httpsAddr, cert, key, mux))
 	} else {
-		log.Fatal(http.ListenAndServe(addr, nil))
+		log.Fatal(http.ListenAndServe(addr, mux))
 	}
 }
