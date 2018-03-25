@@ -210,7 +210,7 @@ func main() {
 	flag.StringVar(&key, "key", "", "https key file")
 	flag.Parse()
 
-	if https && cert == "" || key == "" {
+	if https && (cert == "" || key == "") {
 		fmt.Fprintln(os.Stderr, "https flag needs both cert and key flags")
 		os.Exit(1)
 	}
