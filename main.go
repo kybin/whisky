@@ -109,7 +109,7 @@ func editHandler(w http.ResponseWriter, r *http.Request, title string) {
 }
 
 func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
-	body := r.FormValue("body")
+	body := strings.Replace(r.FormValue("body"), "\r\n", "\n", -1)
 	p := &Page{Title: title, Body: []byte(body)}
 	err := p.save()
 	if err != nil {
