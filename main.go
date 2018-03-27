@@ -91,7 +91,7 @@ func loadPage(title string) (*Page, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Page{Title: title, Body: body}, nil
+	return &Page{Title: title, Body: body, HTML: template.HTML(blackfriday.Run(body))}, nil
 }
 
 func loadPageRev(title string, id uint64) (*Page, error) {
@@ -110,7 +110,7 @@ func loadPageRev(title string, id uint64) (*Page, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Page{Title: title, Body: body}, nil
+	return &Page{Title: title, Body: body, HTML: template.HTML(blackfriday.Run(body))}, nil
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
@@ -125,7 +125,6 @@ func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 			http.NotFound(w, r)
 			return
 		}
-		p.HTML = template.HTML(blackfriday.Run(p.Body))
 		renderTemplate(w, "view", p)
 		return
 	}
@@ -134,7 +133,6 @@ func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
 		return
 	}
-	p.HTML = template.HTML(blackfriday.Run(p.Body))
 	renderTemplate(w, "view", p)
 }
 
