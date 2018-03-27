@@ -75,23 +75,7 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 }
 
 func loadPage(title string) (*Page, error) {
-	var body []byte
-	err := db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("history")).Bucket([]byte(title))
-		if b == nil {
-			return errors.New("page not exists")
-		}
-		c := b.Cursor()
-		_, body = c.Last()
-		if body == nil {
-			return errors.New("page not exists")
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &Page{Title: title, Body: body, HTML: template.HTML(blackfriday.Run(body))}, nil
+	return loadPageRev(title, 0)
 }
 
 func loadPageRev(title string, id uint64) (*Page, error) {
@@ -101,7 +85,14 @@ func loadPageRev(title string, id uint64) (*Page, error) {
 		if b == nil {
 			return errors.New("page not exists")
 		}
-		body = b.Get(byteID(id))
+		if id == 0 {
+			// bolt's id creator (Bucket.NextSequence) create ids from 1,
+			// I will treat 0 as latest revision.
+			c := b.Cursor()
+			_, body = c.Last()
+		} else {
+			body = b.Get(byteID(id))
+		}
 		if body == nil {
 			return errors.New("page not exists")
 		}
