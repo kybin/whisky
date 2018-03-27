@@ -43,6 +43,12 @@ type Revision struct {
 	Author  string
 }
 
+func byteID(id uint64) []byte {
+	bid := make([]byte, 8)
+	binary.BigEndian.PutUint64(bid, id)
+	return bid
+}
+
 func (p *Page) save() error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.Bucket([]byte("history")).CreateBucketIfNotExists([]byte(p.Title))
@@ -50,9 +56,7 @@ func (p *Page) save() error {
 			return fmt.Errorf("could not create bucket: %s", err)
 		}
 		id, _ := b.NextSequence()
-		idb := make([]byte, 8)
-		binary.BigEndian.PutUint64(idb, id)
-		if err := b.Put(idb, p.Body); err != nil {
+		if err := b.Put(byteID(id), p.Body); err != nil {
 			return err
 		}
 		return nil
@@ -97,9 +101,7 @@ func loadPageRev(title string, id uint64) (*Page, error) {
 		if b == nil {
 			return errors.New("page not exists")
 		}
-		idb := make([]byte, 8)
-		binary.BigEndian.PutUint64(idb, id)
-		body = b.Get(idb)
+		body = b.Get(byteID(id))
 		if body == nil {
 			return errors.New("page not exists")
 		}
