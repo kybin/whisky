@@ -3,6 +3,6 @@
 <p>[<a href="/view/{{.Title}}">view</a>]</p>
 
 {{range .Revs}}
-	<p>Rev: {{.Num}}, Created: {{.Created}}, Author: {{.Author}}</p>
+	<p><a href="/view/{{$.Title}}?rev={{.Num}}">Rev: {{.Num}}, Created: {{.Created}}, Author: {{.Author}}</a></p>
 {{end}}
 

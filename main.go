@@ -90,7 +90,43 @@ func loadPage(title string) (*Page, error) {
 	return &Page{Title: title, Body: body}, nil
 }
 
+func loadPageRev(title string, id uint64) (*Page, error) {
+	var body []byte
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("history")).Bucket([]byte(title))
+		if b == nil {
+			return errors.New("page not exists")
+		}
+		idb := make([]byte, 8)
+		binary.BigEndian.PutUint64(idb, id)
+		body = b.Get(idb)
+		if body == nil {
+			return errors.New("page not exists")
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &Page{Title: title, Body: body}, nil
+}
+
 func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
+	if rev := r.URL.Query().Get("rev"); rev != "" {
+		id, err := strconv.ParseUint(rev, 10, 64)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		p, err := loadPageRev(title, id)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		p.HTML = template.HTML(blackfriday.Run(p.Body))
+		renderTemplate(w, "view", p)
+		return
+	}
 	p, err := loadPage(title)
 	if err != nil {
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
