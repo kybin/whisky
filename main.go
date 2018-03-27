@@ -170,14 +170,14 @@ func loadHistory(title string, from, n int) (*History, error) {
 	return h, nil
 }
 
-var homePage string
-
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/" {
-		http.Redirect(w, r, "/view/"+homePage, http.StatusFound)
-		return
+func makeRootHandler(homePage string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			http.Redirect(w, r, "/view/"+homePage, http.StatusFound)
+			return
+		}
+		http.NotFound(w, r)
 	}
-	http.NotFound(w, r)
 }
 
 func redirectToHttps(w http.ResponseWriter, r *http.Request) {
@@ -197,10 +197,11 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p interface{}) {
 
 func main() {
 	var (
-		addr  string
-		https bool
-		key   string
-		cert  string
+		addr     string
+		https    bool
+		key      string
+		cert     string
+		homePage string
 	)
 
 	flag.StringVar(&homePage, "home", "Home", "homepage of the wiki")
@@ -236,7 +237,7 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", rootHandler)
+	mux.HandleFunc("/", makeRootHandler(homePage))
 	mux.HandleFunc("/view/", makeHandler(viewHandler))
 	mux.HandleFunc("/edit/", makeHandler(editHandler))
 	mux.HandleFunc("/save/", makeHandler(saveHandler))
