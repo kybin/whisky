@@ -24,7 +24,7 @@ var db *bolt.DB
 
 var validPath = regexp.MustCompile(`^/(edit|save|view|history)/(.*)$`)
 
-var templates = template.Must(template.ParseFiles("edit.html", "view.html", "history.html"))
+var templates *template.Template
 
 type Page struct {
 	Title string
@@ -224,6 +224,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p interface{}) {
 
 func main() {
 	var (
+		init     bool
 		addr     string
 		https    bool
 		key      string
@@ -231,12 +232,30 @@ func main() {
 		homePage string
 	)
 
+	flag.BoolVar(&init, "init", false, "intialize whisky dir. it ignores other flags")
 	flag.StringVar(&homePage, "home", "Home", "homepage of the wiki")
 	flag.StringVar(&addr, "addr", ":8080", "binding address")
 	flag.BoolVar(&https, "https", false, "turn on https at 443")
 	flag.StringVar(&cert, "cert", "", "https cert file")
 	flag.StringVar(&key, "key", "", "https key file")
 	flag.Parse()
+
+	if init {
+		err := bakego.Extract()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	} else {
+		err := bakego.Ensure()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	templates = template.Must(template.ParseFiles("edit.html", "view.html", "history.html"))
 
 	if https && (cert == "" || key == "") {
 		fmt.Fprintln(os.Stderr, "https flag needs both cert and key flags")
