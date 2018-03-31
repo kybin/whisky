@@ -72,7 +72,13 @@ func init() {
 {{end}}
 
 `)})
-	bakego = append(bakego, BakeGoFile{"view.html", []byte(`<style>
+	bakego = append(bakego, BakeGoFile{"view.html", []byte(`<!DOCTYPE html>
+<html>
+<style>
+body {
+    margin: 0px;
+    padding: 0px;
+}
 table {
     border-collapse: collapse;
 }
@@ -86,22 +92,68 @@ pre {
     border-style: solid;
     border-radius: 2px;
     border-width: 1px;
-    border-color: #cccccc;
+    border-color: #dddddd;
+}
+#header {
+    width: 100%;
+    background-color: #fdfdfd;
+    border-style: solid;
+    border-width: 0px 0px 1px 0px;
+    border-color: #eeeeee;
+    padding: 5px;
+}
+#main {
+    width: 100%;
+    background-color: #ffffff;
+    min-height: 1000px;
+}
+#footer {
+    width: 100%;
+    background-color: #fdfdfd;
+    border-style: solid;
+    border-width: 1px 0px 0px 0px;
+    border-color: #eeeeee;
 }
 #title {
     font-size: 40px;
 }
-.row {
+.align-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.just-center {
+    display: flex;
+    justify-content: center;
+}
+.width-limit {
+    min-width: 800px;
+    max-width: 1600px;
+}
+.inline {
     display: inline-block;
 }
 </style>
 
-<div>
-    <div id="title" class="row"><b>{{.Title}}</b></div>
-    <a href="/edit/{{.Title}}">edit</a>
-    <a href="/history/{{.Title}}">history</a>
-</div>
+<body class="align-center">
+    <div id="header" class="just-center">
+        <div class="width-limit">
+            <div id="title" class="inline"><b>{{.Title}}</b></div>
+            <a href="/edit/{{.Title}}">edit</a>
+            <a href="/history/{{.Title}}">history</a>
+        </div>
+    </div>
 
-{{.HTML}}
+    <div id="main" class="just-center">
+        <div class="width-limit">
+        {{.HTML}}
+        </div>
+    </div>
+
+    <div id="footer" class="just-center">
+        <p>Sample Footer</p>
+    </div>
+<body>
+</html>
 `)})
 }
