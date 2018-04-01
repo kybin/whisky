@@ -19,7 +19,7 @@ func (b BakeGo) Extract() error {
 	for _, s := range b {
 		fname := s.fname
 		data := s.data
-		err := os.MkdirAll(filepath.Dir(fname), 0644)
+		err := os.MkdirAll(filepath.Dir(fname), 0755)
 		if err != nil {
 			return err
 		}
@@ -54,7 +54,7 @@ func (b BakeGo) Ensure() error {
 var bakego BakeGo = make([]BakeGoFile, 0)
 
 func init() {
-	bakego = append(bakego, BakeGoFile{"edit.html", []byte(`<h1>Editing {{.Title}}</h1>
+	bakego = append(bakego, BakeGoFile{"tmpl/edit.html", []byte(`<h1>Editing {{.Title}}</h1>
 
 <p>[<a href="/view/{{.Title}}">view</a>]</p>
 
@@ -63,7 +63,7 @@ func init() {
 	<div><input type="submit" value="Save"></div>
 </form>
 `)})
-	bakego = append(bakego, BakeGoFile{"history.html", []byte(`<h1>{{.Title}}</h1>
+	bakego = append(bakego, BakeGoFile{"tmpl/history.html", []byte(`<h1>{{.Title}}</h1>
 
 <p>[<a href="/view/{{.Title}}">view</a>]</p>
 
@@ -72,7 +72,7 @@ func init() {
 {{end}}
 
 `)})
-	bakego = append(bakego, BakeGoFile{"view.html", []byte(`<!DOCTYPE html>
+	bakego = append(bakego, BakeGoFile{"tmpl/view.html", []byte(`<!DOCTYPE html>
 <html>
 <style>
 body {

@@ -30,7 +30,7 @@ var validPath = regexp.MustCompile(`^/(edit|save|view|history)/(.*)$`)
 // the generated code will be used when a user initializing
 // his/her wiki first time.
 //
-//go:generate bakego view.html edit.html history.html
+//go:generate bakego -d tmpl
 
 var templates *template.Template
 
@@ -263,7 +263,7 @@ func main() {
 		}
 	}
 
-	templates = template.Must(template.ParseFiles("edit.html", "view.html", "history.html"))
+	templates = template.Must(template.ParseGlob("tmpl/*.html"))
 
 	if https && (cert == "" || key == "") {
 		fmt.Fprintln(os.Stderr, "https flag needs both cert and key flags")
