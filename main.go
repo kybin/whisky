@@ -24,6 +24,14 @@ var db *bolt.DB
 
 var validPath = regexp.MustCompile(`^/(edit|save|view|history)/(.*)$`)
 
+// after making a change to template files, you need to run go generate.
+// it will apply the changes to gen_bakego.go
+//
+// the generated code will be used when a user initializing
+// his/her wiki first time.
+//
+//go:generate bakego view.html edit.html history.html
+
 var templates *template.Template
 
 type Page struct {
