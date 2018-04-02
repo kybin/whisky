@@ -63,6 +63,23 @@ func init() {
 	<div><input type="submit" value="Save"></div>
 </form>
 `)})
+	bakego = append(bakego, BakeGoFile{"tmpl/footer.html", []byte(`{{define "footer"}}
+    <div id="footer" class="just-center">
+        <p>Sample Footer</p>
+    </div>
+{{end}}
+
+`)})
+	bakego = append(bakego, BakeGoFile{"tmpl/header.html", []byte(`{{define "header"}}
+    <div id="header" class="just-center">
+        <div class="width-limit">
+            <div id="title" class="inline"><b>{{.Title}}</b></div>
+            <a href="/edit/{{.Title}}">edit</a>
+            <a href="/history/{{.Title}}">history</a>
+        </div>
+    </div>
+{{end}}
+`)})
 	bakego = append(bakego, BakeGoFile{"tmpl/history.html", []byte(`<h1>{{.Title}}</h1>
 
 <p>[<a href="/view/{{.Title}}">view</a>]</p>
@@ -72,77 +89,77 @@ func init() {
 {{end}}
 
 `)})
+	bakego = append(bakego, BakeGoFile{"tmpl/style.html", []byte(`{{define "style"}}
+    <style>
+    body {
+        margin: 0px;
+        padding: 0px;
+    }
+    table {
+        border-collapse: collapse;
+    }
+    table, th, td {
+        border: 1px solid gray;
+        padding: 5px 10px;
+    }
+    pre {
+        background-color: #fdfdfd;
+        padding: 5px;
+        border-style: solid;
+        border-radius: 2px;
+        border-width: 1px;
+        border-color: #dddddd;
+    }
+    #header {
+        width: 100%;
+        background-color: #fdfdfd;
+        border-style: solid;
+        border-width: 0px 0px 1px 0px;
+        border-color: #eeeeee;
+        padding: 5px;
+    }
+    #main {
+        width: 100%;
+        background-color: #ffffff;
+        min-height: 1000px;
+    }
+    #footer {
+        width: 100%;
+        background-color: #fdfdfd;
+        border-style: solid;
+        border-width: 1px 0px 0px 0px;
+        border-color: #eeeeee;
+    }
+    #title {
+        font-size: 40px;
+    }
+    .align-center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .just-center {
+        display: flex;
+        justify-content: center;
+    }
+    .width-limit {
+        min-width: 800px;
+        max-width: 1600px;
+    }
+    .inline {
+        display: inline-block;
+    }
+    </style>
+{{end}}
+`)})
 	bakego = append(bakego, BakeGoFile{"tmpl/view.html", []byte(`<!DOCTYPE html>
 <html>
-<style>
-body {
-    margin: 0px;
-    padding: 0px;
-}
-table {
-    border-collapse: collapse;
-}
-table, th, td {
-    border: 1px solid gray;
-    padding: 5px 10px;
-}
-pre {
-    background-color: #fdfdfd;
-    padding: 5px;
-    border-style: solid;
-    border-radius: 2px;
-    border-width: 1px;
-    border-color: #dddddd;
-}
-#header {
-    width: 100%;
-    background-color: #fdfdfd;
-    border-style: solid;
-    border-width: 0px 0px 1px 0px;
-    border-color: #eeeeee;
-    padding: 5px;
-}
-#main {
-    width: 100%;
-    background-color: #ffffff;
-    min-height: 1000px;
-}
-#footer {
-    width: 100%;
-    background-color: #fdfdfd;
-    border-style: solid;
-    border-width: 1px 0px 0px 0px;
-    border-color: #eeeeee;
-}
-#title {
-    font-size: 40px;
-}
-.align-center {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.just-center {
-    display: flex;
-    justify-content: center;
-}
-.width-limit {
-    min-width: 800px;
-    max-width: 1600px;
-}
-.inline {
-    display: inline-block;
-}
-</style>
+<head>
+    {{template "style"}}
+</head>
 
 <body class="align-center">
-    <div id="header" class="just-center">
-        <div class="width-limit">
-            <div id="title" class="inline"><b>{{.Title}}</b></div>
-            <a href="/edit/{{.Title}}">edit</a>
-            <a href="/history/{{.Title}}">history</a>
-        </div>
-    </div>
+    {{template "header" .}}
 
     <div id="main" class="just-center">
         <div class="width-limit">
@@ -150,10 +167,8 @@ pre {
         </div>
     </div>
 
-    <div id="footer" class="just-center">
-        <p>Sample Footer</p>
-    </div>
-<body>
+    {{template "footer"}}
+</body>
 </html>
 `)})
 }
