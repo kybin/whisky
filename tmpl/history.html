@@ -1,8 +1,21 @@
-<h1>{{.Title}}</h1>
+<!DOCTYPE html>
+<html>
+<head>
+    {{template "style"}}
+</head>
 
-<p>[<a href="/view/{{.Title}}">view</a>]</p>
+<body class="align-center">
+    {{template "header" .}}
 
-{{range .Revs}}
-	<p><a href="/view/{{$.Title}}?rev={{.Num}}">Rev: {{.Num}}, Created: {{.Created}}, Author: {{.Author}}</a></p>
-{{end}}
+    <div id="main" class="just-center">
+        <div class="width-limit">
+        	{{range .Revs}}
+        		<p><a href="/view/{{$.Title}}?rev={{.Num}}">Rev: {{.Num}}, Created: {{.Created}}, Author: {{.Author}}</a></p>
+        	{{end}}
+    	</div>
+    </div>
+
+    {{template "footer"}}
+</body>
+</html>
 

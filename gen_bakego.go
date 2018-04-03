@@ -54,14 +54,29 @@ func (b BakeGo) Ensure() error {
 var bakego BakeGo = make([]BakeGoFile, 0)
 
 func init() {
-	bakego = append(bakego, BakeGoFile{"tmpl/edit.html", []byte(`<h1>Editing {{.Title}}</h1>
+	bakego = append(bakego, BakeGoFile{"tmpl/edit.html", []byte(`<!DOCTYPE html>
+<html>
+<head>
+    {{template "style"}}
+</head>
 
-<p>[<a href="/view/{{.Title}}">view</a>]</p>
+<body class="align-center">
+    {{template "header" .}}
 
-<form action="/save/{{.Title}}" method="POST">
-	<div><textarea name="body" rows="20" cols="80">{{printf "%s" .Body}}</textarea></div>
-	<div><input type="submit" value="Save"></div>
-</form>
+    <div id="main" class="just-center">
+        <div class="width-limit">
+			<form action="/save/{{.Title}}" method="POST">
+				<div><textarea name="body" rows="20" cols="80">{{printf "%s" .Body}}</textarea></div>
+				<div><input type="submit" value="Save"></div>
+			</form>
+    	</div>
+    </div>
+
+    {{template "footer"}}
+</body>
+</html>
+
+
 `)})
 	bakego = append(bakego, BakeGoFile{"tmpl/footer.html", []byte(`{{define "footer"}}
     <div id="footer" class="just-center">
@@ -80,13 +95,26 @@ func init() {
     </div>
 {{end}}
 `)})
-	bakego = append(bakego, BakeGoFile{"tmpl/history.html", []byte(`<h1>{{.Title}}</h1>
+	bakego = append(bakego, BakeGoFile{"tmpl/history.html", []byte(`<!DOCTYPE html>
+<html>
+<head>
+    {{template "style"}}
+</head>
 
-<p>[<a href="/view/{{.Title}}">view</a>]</p>
+<body class="align-center">
+    {{template "header" .}}
 
-{{range .Revs}}
-	<p><a href="/view/{{$.Title}}?rev={{.Num}}">Rev: {{.Num}}, Created: {{.Created}}, Author: {{.Author}}</a></p>
-{{end}}
+    <div id="main" class="just-center">
+        <div class="width-limit">
+        	{{range .Revs}}
+        		<p><a href="/view/{{$.Title}}?rev={{.Num}}">Rev: {{.Num}}, Created: {{.Created}}, Author: {{.Author}}</a></p>
+        	{{end}}
+    	</div>
+    </div>
+
+    {{template "footer"}}
+</body>
+</html>
 
 `)})
 	bakego = append(bakego, BakeGoFile{"tmpl/style.html", []byte(`{{define "style"}}
