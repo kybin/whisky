@@ -89,6 +89,7 @@ func init() {
     <div id="header" class="just-center">
         <div class="width-limit">
             <div id="title" class="inline"><b>{{.Title}}</b></div>
+            <a href="/view/{{.Title}}">view</a>
             <a href="/edit/{{.Title}}">edit</a>
             <a href="/history/{{.Title}}">history</a>
         </div>
