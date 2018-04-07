@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/gob"
 	"errors"
 	"flag"
 	"fmt"
@@ -35,8 +36,10 @@ var validPath = regexp.MustCompile(`^/(edit|save|view|history)/(.*)$`)
 var templates *template.Template
 
 type Page struct {
-	Title string
-	Body  []byte
+	Title   string
+	Body    []byte
+	Created time.Time
+	Author  string
 }
 
 func (p *Page) HTML() template.HTML {
@@ -60,14 +63,28 @@ func byteID(id uint64) []byte {
 	return bid
 }
 
+func toBytes(x interface{}) []byte {
+	buf := &bytes.Buffer{}
+	enc := gob.NewEncoder(buf)
+	enc.Encode(x)
+	return buf.Bytes()
+}
+
+func fromBytes(bs []byte, x interface{}) {
+	buf := bytes.NewBuffer(bs)
+	dec := gob.NewDecoder(buf)
+	dec.Decode(x)
+}
+
 func (p *Page) save() error {
+	pageBytes := toBytes(p)
 	return db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.Bucket([]byte("history")).CreateBucketIfNotExists([]byte(p.Title))
 		if err != nil {
 			return fmt.Errorf("could not create bucket: %s", err)
 		}
 		id, _ := b.NextSequence()
-		if err := b.Put(byteID(id), p.Body); err != nil {
+		if err := b.Put(byteID(id), pageBytes); err != nil {
 			return err
 		}
 		return nil
@@ -90,7 +107,7 @@ func loadPage(title string) (*Page, error) {
 }
 
 func loadPageRev(title string, id uint64) (*Page, error) {
-	var body []byte
+	var pageBytes []byte
 	err := db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("history")).Bucket([]byte(title))
 		if b == nil {
@@ -100,11 +117,11 @@ func loadPageRev(title string, id uint64) (*Page, error) {
 			// bolt's id creator (Bucket.NextSequence) create ids from 1,
 			// I will treat 0 as latest revision.
 			c := b.Cursor()
-			_, body = c.Last()
+			_, pageBytes = c.Last()
 		} else {
-			body = b.Get(byteID(id))
+			pageBytes = b.Get(byteID(id))
 		}
-		if body == nil {
+		if pageBytes == nil {
 			return errors.New("page not exists")
 		}
 		return nil
@@ -112,7 +129,9 @@ func loadPageRev(title string, id uint64) (*Page, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Page{Title: title, Body: body}, nil
+	page := &Page{}
+	fromBytes(pageBytes, page)
+	return page, nil
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
@@ -148,7 +167,7 @@ func editHandler(w http.ResponseWriter, r *http.Request, title string) {
 
 func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	body := strings.Replace(r.FormValue("body"), "\r\n", "\n", -1)
-	p := &Page{Title: title, Body: []byte(body)}
+	p := &Page{Title: title, Body: []byte(body), Created: time.Now(), Author: r.RemoteAddr}
 	err := p.save()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -178,26 +197,32 @@ func loadHistory(title string, from, n int) (*History, error) {
 		}
 		c := b.Cursor()
 
-		var k []byte
+		var (
+			k []byte
+			v []byte
+			p = &Page{}
+		)
 		if from == -1 {
-			k, _ = c.Last()
+			k, v = c.Last()
 			if k == nil {
 				return errors.New("page not exists")
 			}
 		} else {
 			idb := make([]byte, 8)
 			binary.BigEndian.PutUint64(idb, uint64(from))
-			k, _ = c.Seek(idb)
+			k, v = c.Seek(idb)
 			if bytes.Compare(k, idb) != 0 {
 				return errors.New("page not exists")
 			}
 		}
 		i := 0
-		for ; k != nil; k, _ = c.Prev() {
-			if i == n {
+		for ; k != nil; k, v = c.Prev() {
+			// first interation's k, v come from outside of this loop.
+			if i >= n {
 				break
 			}
-			h.Revs = append(h.Revs, Revision{Num: int(binary.BigEndian.Uint64(k))})
+			fromBytes(v, p)
+			h.Revs = append(h.Revs, Revision{Num: int(binary.BigEndian.Uint64(k)), Created: p.Created, Author: p.Author})
 			i++
 		}
 		return nil
