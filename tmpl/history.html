@@ -11,6 +11,7 @@
         <div class="width-limit">
         	{{range .Revs}}
         		<p><a href="/view/{{$.Title}}?rev={{.Num}}">Rev: {{.Num}}, Created: {{.Created}}, Author: {{.Author}}</a></p>
+        		<hr>
         	{{end}}
     	</div>
     </div>

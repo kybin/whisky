@@ -109,6 +109,7 @@ func init() {
         <div class="width-limit">
         	{{range .Revs}}
         		<p><a href="/view/{{$.Title}}?rev={{.Num}}">Rev: {{.Num}}, Created: {{.Created}}, Author: {{.Author}}</a></p>
+        		<hr>
         	{{end}}
     	</div>
     </div>
@@ -138,6 +139,10 @@ func init() {
         border-radius: 2px;
         border-width: 1px;
         border-color: #dddddd;
+    }
+    hr {
+        border: 0;
+        border-top: 1px solid #dddddd;
     }
     #header {
         width: 100%;
