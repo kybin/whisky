@@ -217,7 +217,7 @@ func loadHistory(title string, from, n int) (*History, error) {
 		}
 		i := 0
 		for ; k != nil; k, v = c.Prev() {
-			// first interation's k, v come from outside of this loop.
+			// first iteration's k, v come from outside of this loop.
 			if i >= n {
 				break
 			}
