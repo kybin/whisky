@@ -144,6 +144,9 @@ func init() {
         border: 0;
         border-top: 1px solid #dddddd;
     }
+    a {
+        text-decoration: none;
+    }
     #header {
         width: 100%;
         background-color: #fdfdfd;
