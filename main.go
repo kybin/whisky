@@ -37,7 +37,10 @@ var templates *template.Template
 type Page struct {
 	Title string
 	Body  []byte
-	HTML  template.HTML
+}
+
+func (p *Page) HTML() template.HTML {
+	return template.HTML(blackfriday.Run(p.Body))
 }
 
 type History struct {
@@ -109,7 +112,7 @@ func loadPageRev(title string, id uint64) (*Page, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Page{Title: title, Body: body, HTML: template.HTML(blackfriday.Run(body))}, nil
+	return &Page{Title: title, Body: body}, nil
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
