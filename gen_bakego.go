@@ -159,6 +159,7 @@ func init() {
         width: 100%;
         background-color: #ffffff;
         min-height: 1000px;
+        margin: 20px 0px 0px 0px;
     }
     #footer {
         width: 100%;
