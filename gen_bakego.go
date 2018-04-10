@@ -89,9 +89,10 @@ func init() {
     <div id="header" class="just-center">
         <div class="width-limit">
             <div id="title" class="inline"><b>{{.Title}}</b></div>
-            <a href="/view/{{.Title}}">view</a>
-            <a href="/edit/{{.Title}}">edit</a>
-            <a href="/history/{{.Title}}">history</a>
+            <div class="inline" style="width:20px"></div>
+            <a href="/view/{{.Title}}"><span class="header-button">view</span></a>
+            <a href="/edit/{{.Title}}"><span class="header-button">edit</span></a>
+            <a href="/history/{{.Title}}"><span class="header-button">history</span></a>
         </div>
     </div>
 {{end}}
@@ -153,13 +154,13 @@ func init() {
         border-style: solid;
         border-width: 0px 0px 1px 0px;
         border-color: #eeeeee;
-        padding: 5px;
+        padding: 0px 0px 2px 0px;
     }
     #main {
         width: 100%;
         background-color: #ffffff;
         min-height: 1000px;
-        margin: 20px 0px 0px 0px;
+        padding: 50px 0px 0px 0px;
     }
     #footer {
         width: 100%;
@@ -181,11 +182,16 @@ func init() {
         justify-content: center;
     }
     .width-limit {
-        min-width: 800px;
-        max-width: 1600px;
+        width: 800px;
     }
     .inline {
         display: inline-block;
+    }
+    .header-button{
+        display: inline-block;
+        padding: 10px;
+        margin: 0px 10px 0px 0px;
+        color: #aaaaaa;
     }
     </style>
 {{end}}
