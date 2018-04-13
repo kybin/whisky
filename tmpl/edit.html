@@ -10,7 +10,7 @@
     <div id="main" class="just-center">
         <div class="width-limit">
 			<form action="/save/{{.Title}}" method="POST">
-				<div><textarea name="body" rows="20" cols="80">{{printf "%s" .Body}}</textarea></div>
+				<div><textarea name="body" rows="20" cols="80" style="width:100%; resize:vertical">{{printf "%s" .Body}}</textarea></div>
 				<div><input type="submit" value="Save"></div>
 			</form>
     	</div>
