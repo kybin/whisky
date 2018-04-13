@@ -1,11 +1,13 @@
 {{define "header"}}
     <div id="header" class="just-center">
-        <div class="width-limit">
+        <div class="width-limit" style="display:flex; align-items:flex-end">
             <div id="title" class="inline"><b>{{.Title}}</b></div>
             <div class="inline" style="width:20px"></div>
-            <a href="/view/{{.Title}}"><span class="header-button">view</span></a>
-            <a href="/edit/{{.Title}}"><span class="header-button">edit</span></a>
-            <a href="/history/{{.Title}}"><span class="header-button">history</span></a>
+            <div class="inline"><a href="/view/{{.Title}}"><span class="header-button">view</span></a></div>
+            <div class="inline"><a href="/edit/{{.Title}}"><span class="header-button">edit</span></a></div>
+            <div class="inline"><a href="/history/{{.Title}}"><span class="header-button">history</span></a></div>
+            <div class="inline" style="flex-grow:1"></div>
+            <div class="inline"><a href="/login"><span class="header-button">login</span></a></div>
         </div>
     </div>
 {{end}}
