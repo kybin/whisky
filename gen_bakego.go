@@ -231,6 +231,7 @@ func init() {
         border-radius: 2px;
         border-color: #aaddaa;
         background-color: #fdfdfd;
+        box-shadow: inset 0 1px 2px rgba(27,31,35,0.075);
     }
     .login-input::placeholder {
         color: #bbbbbb;
