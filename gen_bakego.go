@@ -122,6 +122,36 @@ func init() {
 </html>
 
 `)})
+	bakego = append(bakego, BakeGoFile{"tmpl/login.html", []byte(`<!DOCTYPE html>
+<html>
+<head>
+    {{template "style"}}
+</head>
+
+<body class="align-center">
+    {{template "header" .}}
+
+    <div id="main" class="just-center">
+        <div class="width-limit">
+			<div style="display:flex; flex-direction:column; align-items:center">
+				<div style="color: #cccccc"><h2>Welcome to Whisky.</h2></div>
+				<div style="height:40px"></div>
+				<div style="display:flex"><input class="login-input" placeholder="username" style="width:240px; padding:4px; font-size:15px"></input></div>
+				<div style="height:4px"></div>
+				<div style="display:flex"><input class="login-input" placeholder="password" style="width:240px; padding:4px; font-size:15px"></input></div>
+				<div style="height:4px"></div>
+				<input type="button" class="login-button" value="Log In" style="width:250px; padding:6px; font-size:15px"/>
+				<div style="height:80px"></div>
+				<div style="color: #dddddd">or &nbsp;&nbsp;<a href="" style="color:#aa4444"><b>Sign up</b></a>&nbsp;&nbsp;&nbsp;&nbsp;</div>
+			</div>
+        </div>
+    </div>
+
+    {{template "footer"}}
+</body>
+</html>
+
+`)})
 	bakego = append(bakego, BakeGoFile{"tmpl/style.html", []byte(`{{define "style"}}
     <style>
     body {
@@ -194,6 +224,23 @@ func init() {
         padding: 10px;
         margin: 0px 10px 0px 0px;
         color: #aaaaaa;
+    }
+    .login-input {
+        border-style: solid;
+        border-width: 1px;
+        border-radius: 2px;
+        border-color: #aaddaa;
+        background-color: #fdfdfd;
+    }
+    .login-input::placeholder {
+        color: #bbbbbb;
+    }
+    .login-button {
+        border-style: none;
+        border-width: 1px;
+        border-radius: 2px;
+        background-color: #44aa44;
+        color: #ffffff;
     }
     </style>
 {{end}}

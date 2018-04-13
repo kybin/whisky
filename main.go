@@ -23,7 +23,7 @@ import (
 
 var db *bolt.DB
 
-var validPath = regexp.MustCompile(`^/(edit|save|view|history)/(.*)$`)
+var validPath = regexp.MustCompile(`^/(edit|save|view|history)/(.*)|login$`)
 
 // after making a change to template files, you need to run go generate.
 // it will apply the changes to gen_bakego.go
@@ -233,6 +233,10 @@ func loadHistory(title string, from, n int) (*History, error) {
 	return h, nil
 }
 
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	renderTemplate(w, "login", nil)
+}
+
 func makeRootHandler(homePage string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
@@ -324,6 +328,7 @@ func main() {
 	mux.HandleFunc("/edit/", makeHandler(editHandler))
 	mux.HandleFunc("/save/", makeHandler(saveHandler))
 	mux.HandleFunc("/history/", makeHandler(historyHandler))
+	mux.HandleFunc("/login", loginHandler)
 
 	if https {
 		go func() {

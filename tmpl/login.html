@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {{template "style"}}
+</head>
+
+<body class="align-center">
+    {{template "header" .}}
+
+    <div id="main" class="just-center">
+        <div class="width-limit">
+			<div style="display:flex; flex-direction:column; align-items:center">
+				<div style="color: #cccccc"><h2>Welcome to Whisky.</h2></div>
+				<div style="height:40px"></div>
+				<div style="display:flex"><input class="login-input" placeholder="username" style="width:240px; padding:4px; font-size:15px"></input></div>
+				<div style="height:4px"></div>
+				<div style="display:flex"><input class="login-input" placeholder="password" style="width:240px; padding:4px; font-size:15px"></input></div>
+				<div style="height:4px"></div>
+				<input type="button" class="login-button" value="Log In" style="width:250px; padding:6px; font-size:15px"/>
+				<div style="height:80px"></div>
+				<div style="color: #dddddd">or &nbsp;&nbsp;<a href="" style="color:#aa4444"><b>Sign up</b></a>&nbsp;&nbsp;&nbsp;&nbsp;</div>
+			</div>
+        </div>
+    </div>
+
+    {{template "footer"}}
+</body>
+</html>
+
