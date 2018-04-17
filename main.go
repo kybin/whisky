@@ -46,7 +46,7 @@ func (p *Page) HTML() template.HTML {
 	return template.HTML(blackfriday.Run(p.Body))
 }
 
-type History struct {
+type HistoryPage struct {
 	Title string
 	Revs  []Revision
 }
@@ -208,13 +208,13 @@ func historyHandler(w http.ResponseWriter, r *http.Request, title string) {
 	}
 	h, err := loadHistory(title, from, 20)
 	if err != nil {
-		h = &History{Title: title}
+		h = &HistoryPage{Title: title}
 	}
 	renderTemplate(w, "history", h)
 }
 
-func loadHistory(title string, from, n int) (*History, error) {
-	h := &History{Title: title}
+func loadHistory(title string, from, n int) (*HistoryPage, error) {
+	h := &HistoryPage{Title: title}
 	err := db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("history")).Bucket([]byte(title))
 		if b == nil {
