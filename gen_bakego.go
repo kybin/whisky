@@ -141,8 +141,42 @@ func init() {
 				<div style="display:flex"><input type="password" class="login-input" placeholder="password" style="width:240px; padding:4px; font-size:15px"></input></div>
 				<div style="height:4px"></div>
 				<input type="button" class="login-button" value="Log In" style="width:250px; padding:6px; font-size:15px"/>
+				<div style="height:30px"></div> <!-- place holder -->
+				<div style="height:4px"></div>
 				<div style="height:80px"></div>
-				<div style="color: #dddddd">or &nbsp;&nbsp;<a href="" style="color:#aa4444"><b>Sign up</b></a>&nbsp;&nbsp;&nbsp;&nbsp;</div>
+				<div style="color: #dddddd">or &nbsp;&nbsp;<a href="?signup=1" style="color:#aa4444"><b>Sign up</b></a>&nbsp;&nbsp;&nbsp;&nbsp;</div>
+			</div>
+        </div>
+    </div>
+
+    {{template "footer"}}
+</body>
+</html>
+
+`)})
+	bakego = append(bakego, BakeGoFile{"tmpl/signup.html", []byte(`<!DOCTYPE html>
+<html>
+<head>
+    {{template "style"}}
+</head>
+
+<body class="align-center">
+    {{template "header" .}}
+
+    <div id="main" class="just-center">
+        <div class="width-limit">
+			<div style="display:flex; flex-direction:column; align-items:center">
+				<div style="color: #cccccc"><h2>Welcome to Whisky.</h2></div>
+				<div style="height:40px"></div>
+				<div style="display:flex"><input class="signup-input" placeholder="username" style="width:240px; padding:4px; font-size:15px"></input></div>
+				<div style="height:4px"></div>
+				<div style="display:flex"><input type="password" class="signup-input" placeholder="password" style="width:240px; padding:4px; font-size:15px"></input></div>
+				<div style="height:4px"></div>
+				<div style="display:flex"><input type="password" class="signup-input" placeholder="re-enter password" style="width:240px; padding:4px; font-size:15px"></input></div>
+				<div style="height:4px"></div>
+				<input type="button" class="signup-button" value="Sign Up" style="width:250px; padding:6px; font-size:15px"/>
+				<div style="height:80px"></div>
+				<div style="color: #dddddd">or &nbsp;&nbsp;<a href="?login=1" style="color:#44aa44"><b>Log In</b></a>&nbsp;&nbsp;&nbsp;&nbsp;</div>
 			</div>
         </div>
     </div>
@@ -241,6 +275,24 @@ func init() {
         border-width: 1px;
         border-radius: 2px;
         background-color: #44aa44;
+        color: #ffffff;
+    }
+    .signup-input {
+        border-style: solid;
+        border-width: 1px;
+        border-radius: 2px;
+        border-color: #ddaaaa;
+        background-color: #fdfdfd;
+        box-shadow: inset 0 1px 2px rgba(27,31,35,0.075);
+    }
+    .signup-input::placeholder {
+        color: #bbbbbb;
+    }
+    .signup-button {
+        border-style: none;
+        border-width: 1px;
+        border-radius: 2px;
+        background-color: #aa4444;
         color: #ffffff;
     }
     </style>

@@ -151,12 +151,20 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 			loginHandler(w, r, m[2])
 			return
 		}
+		if signup := r.URL.Query().Get("signup"); signup != "" {
+			signupHandler(w, r, m[2])
+			return
+		}
 		fn(w, r, m[2])
 	}
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request, title string) {
 	renderTemplate(w, "login", &LogInPage{Title: title})
+}
+
+func signupHandler(w http.ResponseWriter, r *http.Request, title string) {
+	renderTemplate(w, "signup", &LogInPage{Title: title})
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
