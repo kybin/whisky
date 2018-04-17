@@ -80,7 +80,7 @@ func fromBytes(bs []byte, x interface{}) {
 	dec.Decode(x)
 }
 
-func (p *Page) save() error {
+func savePage(p *Page) error {
 	pageBytes := toBytes(p)
 	return db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.Bucket([]byte("history")).CreateBucketIfNotExists([]byte(p.Title))
@@ -193,7 +193,7 @@ func editHandler(w http.ResponseWriter, r *http.Request, title string) {
 func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	body := strings.Replace(r.FormValue("body"), "\r\n", "\n", -1)
 	p := &Page{Title: title, Body: []byte(body), Created: time.Now(), Author: r.RemoteAddr}
-	err := p.save()
+	err := savePage(p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
