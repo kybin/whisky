@@ -95,21 +95,6 @@ func (p *Page) save() error {
 	})
 }
 
-func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		m := validPath.FindStringSubmatch(r.URL.Path)
-		if m == nil {
-			http.NotFound(w, r)
-			return
-		}
-		if login := r.URL.Query().Get("login"); login != "" {
-			loginHandler(w, r, m[2])
-			return
-		}
-		fn(w, r, m[2])
-	}
-}
-
 func loadPage(title string) (*Page, error) {
 	return loadPageRev(title, 0)
 }
@@ -140,6 +125,38 @@ func loadPageRev(title string, id uint64) (*Page, error) {
 	page := &Page{}
 	fromBytes(pageBytes, page)
 	return page, nil
+}
+
+func makeRootHandler(homePage string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			http.Redirect(w, r, "/view/"+homePage, http.StatusFound)
+			return
+		} else if r.URL.Path == "/login" {
+			http.Redirect(w, r, "/view/"+homePage+"?login=1", http.StatusFound)
+			return
+		}
+		http.NotFound(w, r)
+	}
+}
+
+func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		m := validPath.FindStringSubmatch(r.URL.Path)
+		if m == nil {
+			http.NotFound(w, r)
+			return
+		}
+		if login := r.URL.Query().Get("login"); login != "" {
+			loginHandler(w, r, m[2])
+			return
+		}
+		fn(w, r, m[2])
+	}
+}
+
+func loginHandler(w http.ResponseWriter, r *http.Request, title string) {
+	renderTemplate(w, "login", &LogInPage{Title: title})
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
@@ -239,23 +256,6 @@ func loadHistory(title string, from, n int) (*History, error) {
 		return nil, err
 	}
 	return h, nil
-}
-
-func loginHandler(w http.ResponseWriter, r *http.Request, title string) {
-	renderTemplate(w, "login", &LogInPage{Title: title})
-}
-
-func makeRootHandler(homePage string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/" {
-			http.Redirect(w, r, "/view/"+homePage, http.StatusFound)
-			return
-		} else if r.URL.Path == "/login" {
-			http.Redirect(w, r, "/view/"+homePage+"?login=1", http.StatusFound)
-			return
-		}
-		http.NotFound(w, r)
-	}
 }
 
 func redirectToHttps(w http.ResponseWriter, r *http.Request) {
