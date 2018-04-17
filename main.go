@@ -57,6 +57,10 @@ type Revision struct {
 	Author  string
 }
 
+type LogInPage struct {
+	Title string
+}
+
 func byteID(id uint64) []byte {
 	bid := make([]byte, 8)
 	binary.BigEndian.PutUint64(bid, id)
@@ -96,6 +100,10 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 		m := validPath.FindStringSubmatch(r.URL.Path)
 		if m == nil {
 			http.NotFound(w, r)
+			return
+		}
+		if login := r.URL.Query().Get("login"); login != "" {
+			loginHandler(w, r, m[2])
 			return
 		}
 		fn(w, r, m[2])
@@ -233,14 +241,17 @@ func loadHistory(title string, from, n int) (*History, error) {
 	return h, nil
 }
 
-func loginHandler(w http.ResponseWriter, r *http.Request) {
-	renderTemplate(w, "login", nil)
+func loginHandler(w http.ResponseWriter, r *http.Request, title string) {
+	renderTemplate(w, "login", &LogInPage{Title: title})
 }
 
 func makeRootHandler(homePage string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
 			http.Redirect(w, r, "/view/"+homePage, http.StatusFound)
+			return
+		} else if r.URL.Path == "/login" {
+			http.Redirect(w, r, "/view/"+homePage+"?login=1", http.StatusFound)
 			return
 		}
 		http.NotFound(w, r)
@@ -328,7 +339,6 @@ func main() {
 	mux.HandleFunc("/edit/", makeHandler(editHandler))
 	mux.HandleFunc("/save/", makeHandler(saveHandler))
 	mux.HandleFunc("/history/", makeHandler(historyHandler))
-	mux.HandleFunc("/login", loginHandler)
 
 	if https {
 		go func() {
