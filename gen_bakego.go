@@ -3,12 +3,15 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/hex"
 	"os"
 	"path/filepath"
 )
 
 type BakeGoFile struct {
 	fname string
+	enc string
 	data []byte
 }
 
@@ -18,6 +21,7 @@ type BakeGo []BakeGoFile
 func (b BakeGo) Extract() error {
 	for _, s := range b {
 		fname := s.fname
+		enc := s.enc
 		data := s.data
 		err := os.MkdirAll(filepath.Dir(fname), 0755)
 		if err != nil {
@@ -28,7 +32,15 @@ func (b BakeGo) Extract() error {
 			return err
 		}
 		w := bufio.NewWriter(f)
-		_, err = w.Write(data)
+		decoded := data
+		if enc == "hex" {
+			d, err := fromHex(data)
+			if err != nil {
+				return err
+			}
+			decoded = d
+		}
+		_, err = w.Write(decoded)
 		if err != nil {
 			return err
 		}
@@ -51,10 +63,28 @@ func (b BakeGo) Ensure() error {
 	return nil
 }
 
+// fromHex are twin functions that lives both inside and outside of generated file.
+// Outside one is for testing purpose.
+//
+// Note: if you change this function, change it's twin function too.
+func fromHex(data []byte) ([]byte, error) {
+	reverted := make([]byte, 0, len(data))
+	lines := bytes.Split(data, []byte("\n"))
+	for _, src := range lines {
+		dst := make([]byte, hex.DecodedLen(len(src)))
+		_, err := hex.Decode(dst, src)
+		if err != nil {
+			return nil, err
+		}
+		reverted = append(reverted, dst...)
+	}
+	return reverted, nil
+}
+
 var bakego BakeGo = make([]BakeGoFile, 0)
 
 func init() {
-	bakego = append(bakego, BakeGoFile{"tmpl/edit.html", []byte(`<!DOCTYPE html>
+	bakego = append(bakego, BakeGoFile{"tmpl/edit.html", "", []byte(`<!DOCTYPE html>
 <html>
 <head>
     {{template "style"}}
@@ -78,14 +108,14 @@ func init() {
 
 
 `)})
-	bakego = append(bakego, BakeGoFile{"tmpl/footer.html", []byte(`{{define "footer"}}
+	bakego = append(bakego, BakeGoFile{"tmpl/footer.html", "", []byte(`{{define "footer"}}
     <div id="footer" class="just-center">
         <p>Sample Footer</p>
     </div>
 {{end}}
 
 `)})
-	bakego = append(bakego, BakeGoFile{"tmpl/header.html", []byte(`{{define "header"}}
+	bakego = append(bakego, BakeGoFile{"tmpl/header.html", "", []byte(`{{define "header"}}
     <div id="header" class="just-center">
         <div class="width-limit" style="display:flex; align-items:flex-end">
             <div id="title" class="inline"><b>{{.Title}}</b></div>
@@ -99,7 +129,7 @@ func init() {
     </div>
 {{end}}
 `)})
-	bakego = append(bakego, BakeGoFile{"tmpl/history.html", []byte(`<!DOCTYPE html>
+	bakego = append(bakego, BakeGoFile{"tmpl/history.html", "", []byte(`<!DOCTYPE html>
 <html>
 <head>
     {{template "style"}}
@@ -122,7 +152,7 @@ func init() {
 </html>
 
 `)})
-	bakego = append(bakego, BakeGoFile{"tmpl/login.html", []byte(`<!DOCTYPE html>
+	bakego = append(bakego, BakeGoFile{"tmpl/login.html", "", []byte(`<!DOCTYPE html>
 <html>
 <head>
     {{template "style"}}
@@ -154,7 +184,7 @@ func init() {
 </html>
 
 `)})
-	bakego = append(bakego, BakeGoFile{"tmpl/signup.html", []byte(`<!DOCTYPE html>
+	bakego = append(bakego, BakeGoFile{"tmpl/signup.html", "", []byte(`<!DOCTYPE html>
 <html>
 <head>
     {{template "style"}}
@@ -186,7 +216,7 @@ func init() {
 </html>
 
 `)})
-	bakego = append(bakego, BakeGoFile{"tmpl/style.html", []byte(`{{define "style"}}
+	bakego = append(bakego, BakeGoFile{"tmpl/style.html", "", []byte(`{{define "style"}}
     <style>
     body {
         margin: 0px;
@@ -298,7 +328,7 @@ func init() {
     </style>
 {{end}}
 `)})
-	bakego = append(bakego, BakeGoFile{"tmpl/view.html", []byte(`<!DOCTYPE html>
+	bakego = append(bakego, BakeGoFile{"tmpl/view.html", "", []byte(`<!DOCTYPE html>
 <html>
 <head>
     {{template "style"}}
